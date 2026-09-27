@@ -6,7 +6,8 @@ export class ApiError extends Error {
     readonly code: string, // "SCHEMA_MISMATCH", "INVALID_CREDENTIALS"...
     message: string,
     readonly traceId?: string,
-    readonly errors?: Record<string, unknown>,
+    // RFC 7807 manda um objeto (§8.1); o ZodValidationPipe da API manda [{ field, message }]
+    readonly errors?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -15,4 +16,31 @@ export class ApiError extends Error {
   get isClientError(): boolean {
     return this.status >= 400 && this.status < 500;
   }
+}
+
+export const isApiError = (err: unknown, code?: string): err is ApiError =>
+  err instanceof ApiError && (code === undefined || err.code === code);
+
+/** Mensagem para mostrar na UI, com o trace id quando é erro do servidor. */
+export function errorMessage(err: unknown): string {
+  if (!(err instanceof ApiError)) return "Algo deu errado. Tente de novo.";
+  if (err.status >= 500 && err.traceId) return `${err.message} (código de rastreio: ${err.traceId})`;
+  return err.message;
+}
+
+/** Erros por campo de um 400 VALIDATION_ERROR, nos dois formatos que a API usa. */
+export function fieldErrors(err: unknown): Record<string, string> {
+  if (!(err instanceof ApiError) || err.code !== "VALIDATION_ERROR") return {};
+  const out: Record<string, string> = {};
+  if (Array.isArray(err.errors)) {
+    for (const item of err.errors) {
+      if (typeof item?.field === "string" && typeof item?.message === "string") out[item.field] ??= item.message;
+    }
+  } else if (typeof err.errors === "object" && err.errors !== null) {
+    for (const [field, value] of Object.entries(err.errors)) {
+      const message = Array.isArray(value) ? value[0] : value;
+      if (typeof message === "string") out[field] = message;
+    }
+  }
+  return out;
 }
