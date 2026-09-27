@@ -1,26 +1,110 @@
 @import "tailwindcss";
 
+/* Tokens semânticos. As telas usam bg-surface, text-muted, border-border etc., e o modo
+   escuro só troca os valores aqui. Os gráficos leem --chart-* em tempo de execução; a paleta
+   categórica passou no validador de daltonismo nos dois modos. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --border: #e2e5ea;
+  --fg: #151a22;
+  --muted: #5d6675;
+  --primary: #3b5bdb;
+  --primary-hover: #2f4ac0;
+  --primary-fg: #ffffff;
+  --focus: #748ffc;
+  --info: #1c7ed6;
+  --info-bg: #e7f1fc;
+  --success: #2b8a3e;
+  --success-bg: #e9f6ec;
+  --warning: #b35900;
+  --warning-bg: #fff3e0;
+  --danger: #c92a2a;
+  --danger-bg: #fdecec;
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-grid: #e2e5ea;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0e1116;
+    --surface: #161b22;
+    --surface-2: #1d232c;
+    --border: #2a313c;
+    --fg: #e6e9ef;
+    --muted: #97a0af;
+    --primary: #5c7cfa;
+    --primary-hover: #748ffc;
+    --primary-fg: #0e1116;
+    --focus: #91a7ff;
+    --info: #4dabf7;
+    --info-bg: #13263a;
+    --success: #51cf66;
+    --success-bg: #14291a;
+    --warning: #ffa94d;
+    --warning-bg: #33230f;
+    --danger: #ff6b6b;
+    --danger-bg: #3a1717;
+    --chart-1: #3987e5;
+    --chart-2: #d95926;
+    --chart-3: #199e70;
+    --chart-4: #c98500;
+    --chart-grid: #2a313c;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-focus: var(--focus);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
