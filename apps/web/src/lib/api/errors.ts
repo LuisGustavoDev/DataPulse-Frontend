@@ -21,6 +21,17 @@ export class ApiError extends Error {
 export const isApiError = (err: unknown, code?: string): err is ApiError =>
   err instanceof ApiError && (code === undefined || err.code === code);
 
+const MAX_RETRIES = 2;
+
+/**
+ * Retry das queries: só falha de rede (status 0) e 5xx mudam entre tentativas. 4xx,
+ * resposta fora do contrato (ZodError) e JSON inválido falhariam igual de novo.
+ */
+export function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (failureCount >= MAX_RETRIES || !(error instanceof ApiError)) return false;
+  return error.status === 0 || error.status >= 500;
+}
+
 /** Mensagem para mostrar na UI, com o trace id quando é erro do servidor. */
 export function errorMessage(err: unknown): string {
   if (!(err instanceof ApiError)) return "Algo deu errado. Tente de novo.";

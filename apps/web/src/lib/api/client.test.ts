@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { toApiError, toQueryString } from "./client";
-import { fieldErrors } from "./errors";
+import { z } from "zod";
+import { ApiError, fieldErrors, shouldRetry } from "./errors";
 
 const json = (status: number, body: unknown, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", ...headers } });
@@ -53,5 +54,20 @@ describe("toQueryString", () => {
       "?status=aprovada%2Cpendente&limit=20",
     );
     expect(toQueryString({ status: [] })).toBe("");
+  });
+});
+
+describe("shouldRetry", () => {
+  it("repete rede e 5xx até 2 vezes", () => {
+    expect(shouldRetry(0, new ApiError(0, "NETWORK_ERROR", "x"))).toBe(true);
+    expect(shouldRetry(1, new ApiError(503, "HTTP_503", "x"))).toBe(true);
+    expect(shouldRetry(2, new ApiError(503, "HTTP_503", "x"))).toBe(false);
+  });
+
+  it("não repete 4xx, resposta fora do contrato nem erro desconhecido", () => {
+    expect(shouldRetry(0, new ApiError(404, "NOT_FOUND", "x"))).toBe(false);
+    expect(shouldRetry(0, new ApiError(429, "RATE_LIMITED", "x"))).toBe(false);
+    expect(shouldRetry(0, z.string().safeParse(1).error)).toBe(false);
+    expect(shouldRetry(0, new SyntaxError("JSON"))).toBe(false);
   });
 });
